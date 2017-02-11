@@ -1,0 +1,430 @@
+---
+title: "Carsten's R and Statistics Notes"
+author: "Carsten Ersch"
+date: "21 December 2016"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+abstract: This document summarizes some things I find useful especially in te context
+  of statistics and data wrangling in R
+---
+```{r load}
+    knitr::opts_chunk$set(warning=FALSE, message=FALSE,results='markup',fig.width=5,fig.height=4)
+    library(ggplot2)
+library(knitr)
+```
+
+----
+
+# Overview {.tabset .tabset-fade .tabset-pills}
+
+## This document
+
+> Please consider this a working document, it is solely to summarize some things I want to remember and is not meant as a complete summary of anything
+
+## Data Science
+
+Data science is a combination of different fields as described in the schematic overview below.
+
+
+![](https://smirshekari.files.wordpress.com/2016/01/spring_2014_azam_01.jpg?w=640)  
+
+
+In this document I will sumamrize for myself some points on the different parts in the scheme above.
+
+The substantive expertise will mainly be ignored in this document as it is simply part of what I do. I will first have a look on the hacking skills which also include using RStudio and R and then continue with the statistics
+
+
+# Hacking Skills {.tabset .tabset-fade .tabset-pills}
+
+## Overview
+
+
+## GitHub and Git
+
+This section is all about summarizing a few useful commands.
+Before starting make sure that the SSH key from github is set. Otherwise github will not allow a specific device to connect.
+
+To set up the user account use
+
+- git config --global user.email "mail@xyz.com"
+- git config --global user.name "username"
+
+To commit and pull use
+
+- git remote add origin https://github.com/ewenharrison/test.git
+- git config remote.origin.url git@github.com:ewenharrison/test.git
+- git push -u origin master
+- git commit -m "message"
+
+
+## nice to know things
+
+- there are plenty of API including Facebook, Twitter, google, etc
+- web scraping is a way to extract data from webpages as they are, one only needs to understand the structure of the webpage and this should not change
+
+
+## R and RStudio {.tabset .tabset-fade .tabset-pills}
+
+### Data structures
+
+When speed is an issue the data.table() object is better than data.frame() but they have slightly different syntax.
+
+this is a list with useful commands which should be used in my view. I will demonstrate them on a simple dataset (iris).
+
+```{r}
+library(datasets)
+dataIris <- datasets::iris
+
+# to observe the structure
+
+str(dataIris)
+```
+
+Also very useful is the table function to see how many counts each combination of values from different columns have.
+
+```{r}
+
+table(round(dataIris[,1]),round(dataIris[,2]),useNA = "ifany")
+```
+
+
+
+for data types, remember that factors have levels which can be helpful but also bad in data analysis.
+
+### Transform Data
+
+ifelse(a >1,TRUE,FALSE) -> will add another column, can also have formulas instead of TRUE or FALSE like ifelse(x$a >1,sqrt(x),Na)
+
+#### dplyr
+
+most important is the piping operator which can bring everything together __%>%__
+
+dplyr Function | Explanation
+----------------------------| ---------------------------------------------
+ select(column) | 
+ filter(a>10 & b==2) | gets rows which fulfill the criteria 
+ arrange(column) | can also be arrange(desc(column))
+ rename(column=oldColumnName) |
+ group_by() |
+ distinct() |
+ mutate(ab = a+b)| new columns based on calculation, to temove original columns use transmute()
+ summarise(me = mean(a)) | includes functions for count such as n() and n_distinct() which an be used as summarise(num = n(),nDist = n_distinct(a))
+ special summarise | available are e.g. sumarize_all(), summarize_if() and more
+
+### String handling
+
+
+Expressions | Explanation
+---------| -------------------------------------------------
+. | any character
++ | at least one item
+()? | optional
+* | repeated any number of times
+^ | start of the line
+$ | end of the line
+[] | any of these, example is ^[Ii] (starts with lower oc capital i), ^[a-z] starts with lower between a and z
+
+
+
+
+### Import and save Data
+
+Rhe tead.table function is much faster if one supplies information of the class that each columns should have which an be done using
+```{r}
+# classes <- sapply(read.table(...),class)
+# data <- read.table(...,colClasses = classes)
+```
+
+To save data one can use
+
+dput(x) -> which can save exactly one object
+dump(c(x,y,...)) -> in this case also a number of objects can be saved parallel
+
+
+### Loops
+
+lapply -> loop over a list
+sapply -> same as lapply but simplified results
+apply -> loops over an array
+tapply -> loop over a subset
+mapply -> multivariate version of lapply
+
+### Others
+
+
+- For debugging use -> traceback()
+- To check why code runs slow use -> profiler (Rprof() in combination with summary.Rproof()) or system.time
+- also interesting is the lineproof package
+- When using random numbers use -> set.seed()
+- to take random samples from a list -> sample()
+
+
+### Graphs
+
+To get the output into another format than the plot viewer use devices
+
+- window() for the Rstudio window
+- to set this to another file device use dev.set() where there should be an integer somewhere indicating which device to set. Available are pdf(), svg(), etc. and those need to be closed at the end with dev.off()
+- to get current graphics device use dev.cur()
+
+#### GGplot
+
+- for text labels use the package ggrepel() and the function: + `geom_label_repel(aes(label=SamplingPointWeeks),size=2)`
+
+#### iPlot
+
+seems to be a very powerful tool, should be explored further
+
+
+## Shiny
+
+
+Always think of reactive versus non-reactive
+
+Also think about where to load data or do calculations.
+
+- if this happens in a function this is done every time the userinterface changes
+- if done inside the UI it is done ervey time  a new user signs on
+- if done outside this it only is done per r session once
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+# Math and Statistics Knowledge {.tabset .tabset-fade .tabset-pills}
+
+## overview
+
+Statistics can roughly be divided in the following areas. The different areas will be touch upon separately in this document below.
+
+1. Descriptive Statistics
+  + Only visualize, not interpret
+2. Exploratory statistics
+  + Find patterns in data such as connections, correlations, new insights. These dont have to explain anything specific, __"Correlation does not mean causation"__
+3. Inferential Analysis
+  + Estimate behaviour of a large population from a small sample
+4. Predictive analysis
+  + Estimate the behaviour of another object based on observation of one set of objects
+5. Causal analysis
+  + best described by _ "what happens to one variable when I change another one?"_
+6. Mechanistic analysis
+  + the goal in most science, requires physical models and plenty of theoretical work
+
+
+
+## Clustering
+
+is a temporaty section until I find where to put it
+
+- Hierarchical clustering can be done with hclust(dist(data.frame)). Here different distance maps should be tried, can be Eucledian, correlation, mahattan
+-- heatmap(data.frame) includes hierarchical clustering
+- k-means clustering. The important part here is to check afterwards the centers of the clusters which tell something about the clusters
+
+
+## PCA
+
+_ for missing values use impute()
+- look at the rotation matrix which gives indication which variables a principal component mainly represents
+
+
+
+## Statistical interference - Comparing means 
+
+Some examples taken from http://onlinestatbook.com/2/tests_of_means/ch10_exercises.html
+
+In genral this is to show how to test for statistical differences between groups
+
+### Is a mean statistically different from a certain value
+
+The scores of a random sample of 8 students on a physics test are as follows: 60, 62, 67, 69, 70, 72, 75, and 78. Test to see if the sample mean is significantly different from 65 at the .05 level. Report the t and p values.
+
+```{r 1a}
+    scores <- c(60,62,67,69,70,72,75,78)
+    resA <- t.test(scores,paired = FALSE,var.equal = TRUE,mu=65)
+```
+
+So this seems to be as if the mean is not 65 but the mean is still within the confidence intervals.
+
+When plotting the distribution and data below the relationship between the mean, median and the confidence intervals can be seen.
+
+```{r , fig.cap="Hist mean median"}
+library(ggplot2)
+ggplot(data.frame(scores),aes(x=scores)) +geom_histogram(aes(y = ..density..),binwidth = 5) +geom_density()+theme_light()+
+    geom_vline(xintercept =  median(scores),color="green")+
+    geom_vline(xintercept =  resA$estimate,color="red")+
+    geom_vline(xintercept =  resA$conf.int,color="blue")
+```
+
+```{r}
+ggplot(data.frame(scores),aes(x="scores",y=scores))  +geom_violin() +geom_boxplot()+geom_point()+theme_light()+geom_rug(sides="r")+
+    geom_hline(yintercept =  median(scores),color="green",show.legend = TRUE)+ 
+    geom_hline(yintercept =  resA$estimate,color="red")+
+    geom_hline(yintercept =  resA$conf.int,color="blue")
+```
+
+
+
+### T-test examples - differences between groups
+
+#### Paired t-test
+A (hypothetical) experiment is conducted on the effect of alcohol on perceptual motor ability. Ten subjects are each tested twice, once after having two drinks and once after having two glasses of water. The two tests were on two different days to give the alcohol a chance to wear off. Half of the subjects were given alcohol first and half were given water first. The scores of the 10 subjects are shown below. The first number for each subject is their performance in the "water" condition. Higher scores reflect better performance. Test to see if alcohol had a significant effect. Report the t and p values.
+
+For me this is a paired t-test example
+
+```{r}
+library(reshape2)
+ water <- c(16,15,11,20,19,14,13,15,14,16)
+alcohol <- c(13,13,10,18,17,11,10,15,11,16)
+ques2Data <- data.frame(water,alcohol)
+ques2Data <- melt(ques2Data)
+res2A <- t.test(water,alcohol,paired = TRUE)
+```
+
+
+there is also somethign called pairwise.t.test
+
+Looking at the results from the t-test it can be seen that there is a difference of `r res2A$estimate` between the groups
+
+I will use the same plots as before
+
+```{r,  fig.cap="distributionn",fig.width=5,fig.height=4}
+library(ggplot2)
+library(dplyr)
+ques2DataMean <- ques2Data %>% group_by(variable) %>% summarize_all(median)
+ggplot(ques2Data,aes(x=value,color=variable)) +geom_histogram(aes(y = ..density..,fill=variable),bins = 10,alpha=0.5) +geom_density()+theme_light()+
+    geom_vline(aes(xintercept=value,color=variable),data = ques2DataMean)
+
+
+```
+
+
+```{r,fig.cap="The Extended Boxplot",fig.width=5,fig.height=4}
+ggplot(ques2Data,aes(x=variable,y=value))+geom_violin(aes(fill=variable)) +geom_boxplot(alpha=0.5)+geom_point()+theme_light()+geom_rug(sides="r")+
+    geom_hline(aes(yintercept=value,color=variable),data = ques2DataMean,show.legend = TRUE)
+```
+
+
+#### Independent group t-test
+
+The scores on a (hypothetical) vocabulary test of a group of 20 year olds and a group of 60 year olds are shown below. Test the mean difference for significance using the .05 level.
+
+I will again use the t-test but this time it is not paired
+
+```{r}
+Y20 <- c(27,26,21,24,15,18,17,12,13)
+Y60 <- c(26,29,29,29,27,16,20,27,NA)
+ques3Data <- data.frame(Y20,Y60)
+ques3Data <- melt(ques3Data)
+res3A <- t.test(Y20,Y60,paired = FALSE,var.equal = FALSE)
+```
+
+Again looking at the distribution of the data
+
+```{r,fig.cap="Distribution in drinking example",fig.width=5,fig.height=4}
+ques3DataMean <- ques3Data %>% group_by(variable) %>% summarize_all(funs(median(., na.rm = TRUE)))
+ggplot(ques3Data,aes(x=value,color=variable)) +geom_histogram(aes(y = ..density..,fill=variable),bins = 10,alpha=0.5) +geom_density()+theme_light()+
+    geom_vline(aes(xintercept=value,color=variable),data = ques3DataMean)
+
+
+```
+
+```{r,fig.cap="Violin Plot for Drinking Example",fig.width=5,fig.height=4}
+ggplot(ques3Data,aes(x=variable,y=value))+geom_violin(aes(fill=variable)) +geom_boxplot(alpha=0.5)+geom_point()+theme_light()+geom_rug(sides="r")+
+    geom_hline(aes(yintercept=value,color=variable),data = ques3DataMean,show.legend = TRUE)
+```
+
+
+### ANOVA
+
+
+
+
+### Power
+
+Power is a measure of the probability that a difference between means can be detected given a certain standard deviation and sample size. It refers to the sample II error rate which is the false negative (on the null hypothesis), meaning one assumes there is no difference even though there is one.
+
+Lets take the example of a casein micelle. Lets say the average is 200 nm and the standard deviation is 20. If I now measure 10 samples where whey protein has been attached to the surface and expect a similar variance and measure 210 nm, what is the power of this experiment. In other words, is this very likely that I actually found a difference?
+
+The resultsfrom the test show that the power is at only 43% (at a 5% type one error level, e.g. significance).
+
+```{r}
+    power.t.test(n=10,delta=210-200,sd=20,type = "one.sample",alternative = "one.sided")
+```
+
+
+If one would want to be more thorough and get more certainty it is possible to calculate the number of sample needed for a desired power which is shown in the graph below.
+
+```{r,fig.cap="Power as function of sample size for hypothetical casein micelle experiment"}
+    desiredPower = numeric(0)
+    neededSamples = seq(2,75,2)
+    for(i in 1:length(neededSamples)) desiredPower <- c(desiredPower,power.t.test(n= neededSamples[i],delta=210-200,sd=20,type = "one.sample",alternative = "one.sided")$power[[1]])
+    ggplot(data.frame(neededSamples, desiredPower),aes(x=neededSamples,y=desiredPower))+geom_line()+geom_point()+theme_light()
+```
+
+
+
+
+
+### general comments on statistical interference
+
+- watch out with multiple hypothesis testing. If one performs enough tests, e.g. all categorial variables against all others, lets say 100 tests then just by statistics if we take 95% confidence intervals then we can have 5 false positive tests where find a significance but there might not be one. There is something called false discovery rate to control this type of error
+
+
+
+
+
+
+## Regression {.tabset .tabset-fade .tabset-pills}
+
+### Overview
+
+
+### Models
+
+| lm | linear regression | |
+| rlm()| robust linear regression | can be used to avoid problems with outliers|
+| |logistic regression | if y is a categorial variable|
+
+glmulti() -> can be used to determine the best model for a given problem
+
+The package lme4 gives options to make models with a categorial variable so it spits out a lot of models fast.
+
+minpack.lm is a good non-linear model fitting procedure
+
+
+
+## Machine learning {.tabset .tabset-fade .tabset-pills}
+
+
+
+- The general idea is to set aside a dataset as testing before any data analysis (split the data)
+- First do some descriptive data analysis to see if anything is strange
+- Then pre process the data
+- Then do some training with maybe boot strapping and other statistical tricks to get to the best model
+- and finally do some evaluation of the model and verification with the test set.
+
+
+### Pre processing
+
+- there are standard functions available
+- missing data need to be added
+- data can be centered and scaled
+- using PCA the number of variables can be reduced
+
+
+
+
+

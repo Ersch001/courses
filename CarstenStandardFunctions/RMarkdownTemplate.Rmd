@@ -1,0 +1,54 @@
+---
+title: "Title"
+author:
+  affiliation: Arla R&D, Food Physics and Functionality
+  name: Carsten Ersch
+date: "19 October 2016"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+    code_folding: hide
+abstract: This document has no abstract yet
+---
+
+
+Load Packages and functions
+
+```{r LoadPackagesAndFunctions, include=FALSE}
+    knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+    
+    ## load here other functions that might be needed
+    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/LumifugeFunctions.R')
+    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/ggplotStandards.R')
+    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/LoadAndSaveBasics.R');
+    loadLibraries(); # these ar the libraries that I typically use
+
+
+
+```
+
+
+Data Processing
+
+```{r LoadAndPreProcessData,  cache=TRUE}
+
+```
+
+
+Figure
+
+```{r Figure1, fig.cap="Histogram Number of records per year"}
+
+```
+
+
+# Results {.tabset .tabset-fade .tabset-pills}
+
+## Sub Result
+
+
+# Discussion {.tabset .tabset-fade .tabset-pills}
+
+

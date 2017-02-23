@@ -1,0 +1,143 @@
+---
+title: "Final project Practical machine Learning"
+author: "Carsten Ersch"
+date: "22 February 2017"
+output: html_document
+---
+
+# Summary
+
+
+## The Data
+
+The data is freely available at http://groupware.les.inf.puc-rio.br/har.
+The training and test set for this report were downloaded using the given ULRs from the assignment webpage.
+
+```{r loadData, message=FALSE, warning=FALSE}
+library(readr); require(dplyr)
+training <- read_csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+testing <- read_csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+training$X1 <- NULL
+testing$X1 <- NULL
+```
+
+## Descriptive Statistics
+
+A look at the missing values indicated that there is actually a lot of columns with more than 95% of missing values. These columns are of no use to any prediction and imposing the values will also be a questionnable process so in my view the only way to deal with this is to remove these columns. I defined the cutoff at 95% and removed all columns which have more than 95% of missing values in the training set (I also removed the same columns in the test set). This leaves us with 60 columns
+
+```{r}
+MissingValuesPerColumn <- data.frame(t(training %>% summarize_each(funs(mean(is.na(.))))))
+colnames(MissingValuesPerColumn) <- "MeanMissingValues"
+MissingValuesPerColumn$ColName <- rownames(MissingValuesPerColumn)
+training <- training[,subset(MissingValuesPerColumn,MeanMissingValues < 0.95)$ColName]
+testing <- testing[,subset(MissingValuesPerColumn,MeanMissingValues < 0.95)$ColName[1:(length(subset(MissingValuesPerColumn,MeanMissingValues < 0.95)[,1])-1)]]
+rm(MissingValuesPerColumn)
+```
+
+For the remaining columns lets have a look on their variance. The variance for all of them seems to be ok despite the variable new_window which seems to have zero variance. This variable seems to have something to do with the numeric window column. As there is no explanation of these two columns available I will not remove it and see if they have a large impact on the model later.
+
+```{r}
+nZVarTest <- data.frame(nearZeroVar(testing, saveMetrics = TRUE))
+nZVarTest$ColNames <- rownames(nZVarTest)
+nZVarTest %>% filter(nzv == TRUE | zeroVar == TRUE)
+```
+
+Because there is limited information on the dataset columns avaiable, the columns containing the date and time information are not really useful at this point and will also be dropped.
+The same counts for the window variables. Without more information on them there is no way to use these.
+
+```{r}
+training$raw_timestamp_part_1 <- NULL
+training$raw_timestamp_part_2 <- NULL
+training$cvtd_timestamp <- NULL
+training$new_window <- NULL
+
+
+testing$raw_timestamp_part_1 <- NULL
+testing$raw_timestamp_part_2 <- NULL
+testing$cvtd_timestamp <- NULL
+testing$new_window <- NULL
+```
+
+
+## Pre- Processing
+
+First lets try to impute the mising data
+
+```{r}
+ImputeCB <- preProcess(training, method = "knnImpute")
+trainingImp <- predict(ImputeCB,training)
+testingImp <- predict(ImputeCB,testing)
+```
+
+And now lets remove the columns that are highly correlated even though we know that for some models it can be ok or even better to have them but lets try to build a simple model.
+
+```{r}
+trainingCor <- cor(trainingImp[,-c(1,55)])
+summary(trainingCor[upper.tri(trainingCor)])
+
+
+trainingFinal <- trainingImp[,-(findCorrelation(trainingCor,cutoff = .9))]
+testingFinal <- testingImp[,-findCorrelation(trainingCor,cutoff = .9)]
+```
+
+
+For the moment I will not do any additional pre-processing such as PCA or another type of pre-processing
+
+
+
+## Model Training
+
+
+Lets start with a simple random forest model and see how that performs
+
+```{r, message=FALSE,echo=FALSE, warning=FALSE, cache=TRUE}
+set.seed(1234)
+inTraining <- createDataPartition(trainingFinal$classe, p = .8, list = FALSE)
+trainingTrain <- trainingFinal[ inTraining,]
+trainingTest  <- trainingFinal[-inTraining,]
+
+control <- trainControl(method="cv", number=10)
+
+mod_rf <- train(classe ~.,method = "rf",data = trainingTrain, trControl = control)
+mod_gbm <- train(classe ~.,method = "gbm",data = trainingTrain , trControl = control)
+
+```
+
+Lets fast compare those two models and see how they perform on the training set. The random forest definitely performed better but this also comes at a cost which is computation time needed for this type of model.
+
+```{r}
+modelComp <- resamples(list(rf=mod_rf, gmb = mod_gbm))
+summary(modelComp)
+
+```
+
+Lets also compare th emodels on the testset that was set aside. The confusion matrixes are shown below for both of the models. The random forest has a very good prediction on this test set with only limited misclsssified case.
+
+
+```{r}
+pred_rf <- predict(mod_rf,trainingTest)
+pred_gmb <- predict(mod_gbm,trainingTest)
+confM_rf <- confusionMatrix(pred_rf,trainingTest$classe)
+confM_gmb <- confusionMatrix(pred_gmb,trainingTest$classe)
+confM_rf$table
+confM_gmb$table
+```
+
+
+
+# Predicting validation cases
+
+
+Using the random forest model, lets predict the activities for the testing set from the coursera asignment.
+
+
+
+```{r}
+finalPred <- predict(mod_rf,testingFinal)
+testing$Predicted <- finalPred
+```
+
+
+
+
+

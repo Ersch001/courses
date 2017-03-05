@@ -1,0 +1,181 @@
+---
+title: "Practical machine learning quiz"
+output: html_notebook
+---
+
+# week 4
+
+## question 1
+
+Set the variable y to be a factor variable in both the training and test set. Then set the seed to 33833. Fit (1) a random forest predictor relating the factor variable y to the remaining variables and (2) a boosted predictor using the "gbm" method. Fit these both with the train() command in the caret package. 
+What are the accuracies for the two approaches on the test data set? What is the accuracy among the test set samples where the two methods agree? 
+
+```{r, message=FALSE}
+set.seed(33833)
+library(ElemStatLearn); require(caret)
+data(vowel.train)
+data(vowel.test)
+vowel.train$y <- as.factor(vowel.train$y)
+vowel.test$y <- as.factor(vowel.test$y)
+modRF <- train(y ~., method = "rf", data = vowel.train)
+modGbm <- train(y ~., method = "gbm", data = vowel.train)
+```
+
+
+The model accuracy for the random forest is shown below but not one of the answer options in the quiz
+
+```{r}
+vowel.test$predRf <- predict(modRF,vowel.test)
+table(vowel.test$y,vowel.test$predRf)
+confRf <- confusionMatrix(data = vowel.test$predRf, reference = vowel.test$y)
+confRf$overall[1]
+```
+
+
+
+
+```{r}
+vowel.test$predGmb <- predict(modGbm,vowel.test)
+table(vowel.test$y,vowel.test$predGmb)
+confMGmb <- confusionMatrix(data = vowel.test$predGmb, reference = vowel.test$y)
+confMGmb$overall[1]
+```
+
+agreement accuracy
+
+```{r}
+confCross <- confusionMatrix(data = vowel.test$predGmb, reference = vowel.test$predRf)
+table(vowel.test$predRf,vowel.test$predGmb)
+confCross$overall[1]
+```
+
+
+The answer that comes closest to the results I have is 
+
+RF Accuracy = 0.6082 
+GBM Accuracy = 0.5152 
+Agreement Accuracy = 0.6361
+
+this was correct
+
+## Question 2
+
+Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"), boosted trees ("gbm") and linear discriminant analysis ("lda") model. Stack the predictions together using random forests ("rf"). What is the resulting accuracy on the test set? Is it better or worse than each of the individual predictions? 
+
+```{r}
+library(caret)
+library(gbm)
+set.seed(62433)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+
+modRF1 <- train(diagnosis ~.,method = "rf",data=training)
+modGbm1 <- train(diagnosis ~.,method = "gbm",data=training)
+modLda1 <- train(diagnosis ~.,method = "lda",data=training)
+
+comOut <- data.frame(rf= predict(modRF1), gmb = predict(modGbm1),lda = predict(modLda1),y=training$diagnosis)
+
+modComb <- train(y ~. , method = "rf",data = comOut)
+
+testing$predRF <- predict(modRF1,testing)
+testing$predGbm <- predict(modGbm1,testing)
+testing$predLda <- predict(modLda1,testing)
+
+comTrain <- data.frame(rf= predict(modRF1,testing), gmb = predict(modGbm1,testing),lda = predict(modLda1,testing),y=testing$diagnosis)
+
+testing$predComb <- predict(modComb,comTrain)
+
+confRf1 <- confusionMatrix(data = testing$predRF, reference = testing$diagnosis)
+confGbm1 <- confusionMatrix(data = testing$predGbm, reference = testing$diagnosis)
+conflda1 <- confusionMatrix(data = testing$predLda, reference = testing$diagnosis)
+confComb <- confusionMatrix(data = testing$predComb, reference = testing$diagnosis)
+
+confRf1$overall[1]
+confGbm1$overall[1]
+conflda1$overall[1]
+confComb$overall[1]
+
+
+```
+
+As far as I see it the accuracy of the stacked one is the same as for the random forest
+
+this is not an answer in the quiz and I will choose the follwing answer
+
+stacked Accuracy: 0.88 is better than all three other methods
+
+this was wrong
+
+
+I then chose
+
+Stacked Accuracy: 0.80 is better than all three other methods
+
+
+
+
+## question 3
+
+
+Set the seed to 233 and fit a lasso model to predict Compressive Strength. Which variable is the last coefficient to be set to zero as the penalty increases? (Hint: it may be useful to look up ?plot.enet). 
+
+
+```{r}
+set.seed(3523)
+set.seed(233)
+library(AppliedPredictiveModeling)
+
+data(concrete)
+
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+
+training = concrete[ inTrain,]
+
+testing = concrete[-inTrain,]
+
+thismod <- train(CompressiveStrength ~., method = "lasso", data = training)
+par(mfrow=c(2,2))
+plot(thismod$finalModel)
+plot(thismod$finalModel,xvar="step")
+
+```
+
+I guessed  BlastFurnaceSlag which was wrong
+
+I then guessed Cement
+
+
+## question 4
+
+I guessed 96 % which is correct
+
+## question 5
+
+
+
+```{r}
+set.seed(3523)
+library(caret)
+library(AppliedPredictiveModeling)
+library(e1071)
+
+data(concrete)
+
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+
+training = concrete[ inTrain,]
+
+testing = concrete[-inTrain,]
+set.seed(325)
+
+thismod <- svm(CompressiveStrength ~., data = training)
+
+sqrt(mean((thismod$residuals)^2))
+```
+
+this is not in the list so I chose 6.72 which is correct

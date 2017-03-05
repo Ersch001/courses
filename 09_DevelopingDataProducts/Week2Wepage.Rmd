@@ -1,0 +1,22 @@
+---
+title: "Untitled"
+author: "Carsten Ersch"
+date: "17 February 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+my date: 17.02.2017
+
+My interest in maps is limited to here only a basic map with leaflet to show that I can reproduce something
+
+```{r, warning=FALSE, echo=FALSE}
+require(leaflet)
+require(datasets);data("quakes")
+leaflet(data = quakes) %>% addTiles() %>%   addMarkers(~long, ~lat, popup = ~as.character(mag),clusterOptions = markerClusterOptions()) %>% addLegend("bottomright", colors= "#ffa500", labels="19.02.2017'", title="The Date")
+
+```
+

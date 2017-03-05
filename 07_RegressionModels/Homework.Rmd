@@ -1,0 +1,398 @@
+---
+title: "Regression Modelling Course Tests"
+output: html_notebook
+---
+
+# week 1
+
+## Question 1
+
+```{r}
+
+myFun <- function(u)
+{
+  x <- c(0.18, -1.54, 0.42, 0.95)
+  w <- c(2, 1, 3, 1)
+  return(sum((w*(x-u)^2)))
+}
+
+optimise(myFun,c(0.001,2))
+
+```
+
+## Question 2
+
+
+```{r}
+x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
+y <- c(1.39, 0.72, 1.55, 0.48, 1.19, -1.59, 1.23, -0.65, 1.49, 0.05)
+
+lm(y~ 0+x)
+```
+
+## Question 3
+
+
+```{r}
+data(mtcars)
+ lm(mtcars$mpg ~ mtcars$wt)
+```
+
+## question 4
+
+I guessed 0.25 --> wrong
+
+I guessed 1 --> correct
+
+## question 5
+
+I guessed 0.16 --> wrong
+
+I guessed 0.4 --> wrong
+
+## Question 6
+
+```{r}
+x <- c(8.58, 10.46, 9.01, 9.64, 8.86)
+scale(x)
+```
+
+
+
+## question 7
+
+```{r}
+x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
+y <- c(1.39, 0.72, 1.55, 0.48, 1.19, -1.59, 1.23, -0.65, 1.49, 0.05)
+lm(y~x)
+
+```
+
+
+
+
+## Question 8
+
+I answered that nothing can be said from this information --> wrong
+
+I answered it must be zero --> 
+
+
+## question 9
+
+```{r}
+x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
+
+lm(x~x)
+```
+
+
+
+
+## question 10
+
+I guessed Cor(Y,X) --> wrong
+
+I guessed Var(Y)/Var(X) --> correct
+
+
+# week 2
+
+
+## question 1
+
+```{r}
+x <- c(0.61, 0.93, 0.83, 0.35, 0.54, 0.16, 0.91, 0.62, 0.62)
+y <- c(0.67, 0.84, 0.6, 0.18, 0.85, 0.47, 1.1, 0.65, 0.36)
+
+
+summary(lm(y~x))
+```
+
+I answered 0.053
+
+## question 2
+
+from the earlier result it should be 0.223
+
+
+## question 3
+
+```{r}
+x <- mtcars$wt
+y<- mtcars$mpg
+mysumm <- lm(y ~ x)
+newD <- data.frame(x = mean(x))
+predict(mysumm,newdata = newD,interval = "confidence")
+```
+
+I answered 18.99
+
+
+
+
+## question 4
+
+I answered The estimated expected change in mpg per 1,000 lb increase in weight.
+
+## question 5
+
+```{r}
+newD <- data.frame(x = mean(3))
+predict(mysumm,newdata = newD,interval = "confidence",level = 0.95)
+```
+
+None of these numbers is available as an answer. I guessed 27.57 as the others are too low
+
+## question 6
+
+```{r}
+summary(mysumm)
+```
+
+I guessed -9 --> wrong
+I guessed -6.486 --> wrong
+
+## question 7
+
+I guessed multiplied by 100 --> correct
+
+## question 8
+
+I guessed The new slope would be 
+c
+β
+^
+1
+
+this was wrong
+
+I then guessed The new slope would be 
+β
+^
+1
++c
+
+this was wrong
+
+
+## question 9
+
+I guessed 0.75 -> wrong
+
+I guessed 0.25 -> correct
+
+## question 10
+
+I guessed If an intercept is included, then they will sum to 0. -> correct
+
+
+
+
+# Week 3
+
+
+
+## question 1
+
+```{r}
+data("mtcars")
+summary(lm(mpg ~ wt + factor(cyl), data = mtcars))
+
+
+```
+
+I answered -6.071 which is correct
+
+## question 2
+
+
+```{r}
+data("mtcars")
+require(lme4)
+#lmList(mpg ~ wt | cyl, data = mtcars)
+summary(lm(mpg ~ wt + factor(cyl), data = mtcars))$coeff
+summary(lm(mpg ~ factor(cyl), data = mtcars))$coeff
+```
+
+I answered that holding weight constant cylinder has more of an effect which is wrong
+
+I answered that it has less of an effect this time, even though I don thtink so and this is correct
+
+
+## question 3
+
+
+```{r}
+fit1 <- lm(mpg ~ wt + factor(cyl), data = mtcars)
+fit2 <- lm(mpg ~ wt * factor(cyl), data = mtcars)
+anova(fit1,fit2)
+```
+
+I answered wrongly
+
+The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms is necessary.
+
+I answered wrongly
+
+The P-value is small (less than 0.05). So, according to our criterion, we reject, which suggests that the interaction term is not necessary. 
+
+I answered wrongly
+
+The P-value is small (less than 0.05). Thus it is surely true that there is no interaction term in the true model.
+
+I answered this time the answer that I actually wanted from the bgeinning but never found
+
+The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms may not be necessary.
+
+## question 4
+
+```{r}
+summary(lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars))
+```
+
+I answered wrongly
+The estimated expected change in MPG per half ton increase in weight for for a specific number of cylinders (4, 6, 8).
+
+I answered wrongly 
+The estimated expected change in MPG per half ton increase in weight.
+
+I answered wrongly
+The estimated expected change in MPG per half ton increase in weight for the average number of cylinders.
+
+I answered
+
+The estimated expected change in MPG per half ton increase in weight for for a specific number of cylinders (4, 6, 8).
+
+
+## question 5
+
+```{r}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+hatvalues(lm(y~x))
+```
+
+I answered 0.9946 which is correct
+
+## question 6
+
+```{r}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+dfbeta(lm(y~x))
+```
+
+I answered 0.673 because the value I think it is is not there which was wrong
+
+Then I answered -0.378 which is wrong
+
+Then I answered -.00134 which is wrong
+
+I answered -134
+
+
+## question 7
+
+I answered correctly
+
+It is possible for the coefficient to reverse sign after adjustment. For example, it can be strongly significant and positive before adjustment and strongly significant and negative after adjustment.
+
+
+
+# week 4
+
+## question 1
+
+```{r}
+library(MASS)
+shuttle <- shuttle
+shuttle$use1 <- ifelse(shuttle$use %in% "auto",1,0)
+exp(summary(glm(use ~ wind, data = shuttle, family="binomial" ))$coeff)
+
+```
+
+I answered 0.031 which is wrong
+
+I answered 0.968 which is correct
+
+## question 2
+
+
+```{r}
+exp(summary(glm(use1 ~ wind + magn, data = shuttle, family="binomial" ))$coeff)
+1/1.032
+```
+
+I guessed 0.684 which is wrong
+
+I answered 1.00 which is wrong
+
+I answered 0.969
+
+## question 3
+
+
+
+
+```{r}
+summary(glm(use1 ~ wind, data = shuttle, family="binomial" ))$coeff
+summary(glm((1-use1) ~ wind, data = shuttle, family="binomial" ))$coeff
+```
+
+
+
+I answered wrongly
+
+The intercept changes sign, but the other coefficients don't.
+
+I answered correctly
+
+The coefficients reverse their signs.
+
+## question 4
+
+```{r}
+require(datasets)
+data("InsectSprays")
+
+exp(summary(glm(count ~ spray, data = InsectSprays, family="poisson" ))$coeff)
+1/1.05
+```
+
+
+I answered -0.056 which is wrong
+
+I answered 0.9457 which is correct
+
+## question 5
+
+I guessed wrongly
+
+The coefficient is subtracted by log(10).
+
+I guessed wrongly
+
+The coefficient estimate is divided by 10.
+
+I guessed
+
+The coefficient estimate is multiplied by 10.
+
+## question 6
+
+
+I guessed 2.037 which is wrong
+
+I guessed 1.013 which is correct
+
+
+
+
+
+
+
+
+
+
+

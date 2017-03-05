@@ -1,0 +1,22 @@
+---
+title: "SubmissionWeek3"
+author: "Carsten Ersch"
+date: "18 February 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(datasets); data(mpg)
+require(ggplot2);require(GGally);require(plotly)
+mtcars$Transmission <- ifelse(mtcars$am ==1 , "Automatic","Manual")
+```
+
+
+## Slide with Plot
+
+```{r, message=FALSE,warning=FALSE,echo=FALSE}
+ggplotly(ggpairs(mtcars[,c(1:4,12)], mapping = aes(color = Transmission), 
+  upper = list( continuous = wrap("cor", size = 2, alignPercent = 1)))+ theme_grey(base_size = 6))
+```
+

@@ -1,54 +1,95 @@
 ---
 title: "Title"
-author:
-  affiliation: Arla R&D, Food Physics and Functionality
-  name: Carsten Ersch
-date: "19 October 2016"
+author: "Carsten Ersch"
+date: "The Fixed Date"
 output:
-  html_document:
-    toc: yes
   pdf_document:
+    keep_tex: yes
+    number_sections: yes
+    template: CEPDFTemplate.tex
     toc: yes
-    code_folding: hide
+    df_print: kable
+  html_document:
+    css: CEHTMLTemplate.css
+    keep_md: yes
+    number_sections: yes
+    self_contained: yes
+    toc: yes
+  word_document:
+    number_sections: yes
+    toc: no
+biblio-style: apsr
+bibliography: C:/Users/carst/Documents/library.bib
 abstract: This document has no abstract yet
 ---
 
+\pagebreak
 
 Load Packages and functions
 
 ```{r LoadPackagesAndFunctions, include=FALSE}
-    knitr::opts_chunk$set(warning=FALSE, message=FALSE)
-    
-    ## load here other functions that might be needed
-    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/LumifugeFunctions.R')
-    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/ggplotStandards.R')
-    source('C:/Users/CARER/OneDrive - Arla Foods amba/CE_RStandardFunctions/LoadAndSaveBasics.R');
-    loadLibraries(); # these ar the libraries that I typically use
-
-
-
+    knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = FALSE,  fig.width = 6, fig.height = 4 )
+require(datasets);require(ggplot2); require(plotly)
+  data("mtcars")
 ```
 
 
 Data Processing
 
-```{r LoadAndPreProcessData,  cache=TRUE}
+```{r LoadAndPreProcessData, cache=TRUE}
 
 ```
 
 
-Figure
+# Introduction and Background
 
-```{r Figure1, fig.cap="Histogram Number of records per year"}
+This is a citation [@Dickinson1999] and an in line citation @Dickinson1999
 
+# Results
+
+## A graph
+
+This is a reference to the graph below which is called \ref{fig:fig1}
+
+
+
+```{r fig1, fig.cap="\\label{fig:fig1} A simple plot"}
+#ggplotly
+(ggplot(mtcars,aes(x=hp,y=mpg,color=factor(cyl)))+theme_light()+geom_point())
 ```
 
 
-# Results {.tabset .tabset-fade .tabset-pills}
-
-## Sub Result
 
 
-# Discussion {.tabset .tabset-fade .tabset-pills}
+
+# Discussion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+# Some Basics (to be removed)
+
+
+
+
+
+
+
+\newpage
+
+
+# Bibliography
 
 

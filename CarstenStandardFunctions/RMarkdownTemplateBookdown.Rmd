@@ -1,0 +1,115 @@
+---
+title: "Title"
+author: Carsten Ersch
+date: "Date"
+site: bookdown::bookdown_site
+output:  
+  bookdown::gitbook
+    ## for html use gitbook for pdf use pdf_book (remove ggplotly and html content)
+
+biblio-style: apsr
+bibliography: C:/Users/carst/Documents/library.bib
+keywords: "none"
+abstract: This document has no abstract yet
+---
+
+
+Load Packages and functions
+
+```{r LoadPackagesAndFunctions, include=FALSE}
+    knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+  require(bookdown)
+  gitbook(fig_caption = TRUE, number_sections = TRUE, 
+  self_contained = TRUE, lib_dir = "libs",  
+  split_by = c( "none"), split_bib = TRUE)
+    require(datasets);require(ggplot2); require(plotly)
+  data("mtcars")
+```
+
+# Summary
+
+Here comes the summary
+
+
+# Introduction and Background
+
+This is a citation [@Dickinson1999] and an in line citation @Dickinson1999
+
+
+# Results
+
+Data Processing
+
+```{r LoadAndPreProcessData,  cache=TRUE}
+
+```
+
+
+
+## A Figure
+
+
+Figure numbers are easily received using the chunk name which for the figure below leads to:  Figure \@ref(fig:FigA)
+
+
+```{r FigA, fig.cap="The first figure",fig.asp = 0.7, fig.width = 6, fig.align = 'center'}
+#ggplotly
+(ggplot(mtcars,aes(x=hp,y=mpg,color=factor(cyl)))+theme_light()+geom_point())
+```
+
+
+# Discussion
+
+# Formatting (to be removed)
+
+
+this is how you show an image as figure and you refer to it as Figure \ref(fig:FigB)
+
+```{r FigB, echo=FALSE, fig.cap="The first figure",fig.asp = 0.7, fig.width = 6, fig.align = 'center'}
+#knitr::include_graphics(rep("https://www.rstudio.com/wp-content/uploads/2014/07/RStudio-Logo-Blue-Gradient.png", 1))
+```
+
+
+
+
+
+
+## Basics text
+
+*bold*
+_italic_
+subscript H~2~O~2~
+superscript 10^2^
+footnotes ^[This is a footnote.]
+
+Lists
+- A
+- B
+ - BA
+ - BB
+- C
+
+* A
+ * AB
+ * AC
+
+1. test
+2. test
+2.3 Test
+
+
+## Equations
+
+refering to equation \@ref(eq:binom)
+
+\begin{equation} 
+  f\left(k\right) = \binom{n}{k} p^k\left(1-p\right)^{n-k}
+  (\#eq:binom)
+\end{equation} 
+
+
+
+
+
+# Literature
+

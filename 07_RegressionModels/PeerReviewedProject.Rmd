@@ -1,0 +1,84 @@
+---
+title: "MTCars Exploration"
+author: "Carsten Ersch"
+date: "16 February 2017"
+output:
+  pdf_document:
+    toc: no
+---
+
+# Summary
+This short data analysis focusses on the question whether manual or automatic cars have a lower mpg. On a first look at the data this seems verified as automatic cars are shown to have lower mpg than manual cars. In a more detailed data analysis, however, it was shown that this difference can be solely explained by the weight and horse power.
+
+# Exploratory Data Analysis
+
+```{r, warning=FALSE, message=FALSE}
+require(datasets);data("mtcars")
+mtcars$Transmission <- ifelse(mtcars$am ==1 , "Manual","Automatic")
+mtcars$am <- NULL
+require(ggplot2);require(GGally)
+```
+
+The variables from the dataset are explained in the relevant help file.
+
+As shown in the correlation plot in the appendix the mpg data is clearly correlated with some of the variables such as the number of cylinders, displacement, horsepower, rear axle ratio, etc. Some of these variables, however, are also correlated with each other which should be noted and taken into account during the subsequent analysis.
+What is also visible from the data below is that on a first look, the data for the automatic cars (shown in red) seem to have a clearly lower mpg as the manual cars and in some of the relationships between mpg and other variables data for manual and automatic cars are clearly distinguishable.
+
+
+## Fitting linear regression models
+
+From the exploratory data analysis, most relationships seemed linear which might justify using simple linear models.
+
+Lets first inspect the difference between automatic and manual cars without including other variables. The result is shown below which shows that automatic cars have significantly more mpg than manual cars.
+Based on this first look at the data the difference between manual cars and automatic cars is in the order of magnitude around 10 mpg.
+
+```{r, message=FALSE,warning=FALSE}
+require(lme4)
+fit <- lm(mpg ~ Transmission, data = mtcars)
+summary(fit)$coeff
+```
+
+
+As shown in the correlation plot in the appendix, some other factors might impact on the relationship between transmission and mpg. From the data analysis above and logic behind the variables the horsepower and weight might be the most relevant ones. Lets fit one model including each and one with both. and comapre them to the model which did not take into account.
+
+The results below (details in the appendix 2) show that once the horse power and the weight are included in the model, the effect of transmission is partially explained by these variables. Adding both of these variables can account for most of the variation in the data and the effect of transmission becomes insignificant. This last model therefore seems to be most relevant as it explains most of the variation without including the transmission which to some extend seems logical as the weight and horsepower should have a much larger effect on the fuel usage than the type of transmission.
+
+```{r}
+require(knitr)
+fit3 <- lm(mpg ~ Transmission * hp , data = mtcars)
+fit4 <- lm(mpg ~ Transmission  + wt, data = mtcars)
+fit5 <- lm(mpg ~ Transmission  + wt + hp, data = mtcars)
+anova(fit,fit4,fit3,fit5)
+```
+
+From the residuals plot shown in appendix 3 no clear patterns could be detected.
+Looking at the relative hat values and ddfit values it seems that especially the crysler imperial and Maserati Bora have a large impact on the final fit which seems logical given that these are pretty heavy and high horsepower cars with a very low mpg compared to the rest of the cars.
+
+```{r}
+kable(as.data.frame(tail(sort(hatvalues(fit5)/mean(hatvalues(fit5))),5)))
+kable(as.data.frame(tail(sort(abs(dffits(fit5))),5)))
+```
+
+# Appendix 1 Full correlation plot
+
+```{r correlationplot, warning=FALSE, message=FALSE, fig.cap="Correlation Plot for MPG Dataset"}
+ggpairs(mtcars, mapping = aes(color = Transmission), 
+  upper = list( continuous = wrap("cor", size = 1.5, alignPercent = 1)))
+```
+
+# Appendix 2 Model Details
+
+```{r}
+kable(summary(fit3)$coeff)
+kable(summary(fit4)$coeff)
+kable(summary(fit5)$coeff)
+```
+
+
+# Apendix 3 Residuals Plot
+
+```{r}
+par(mfrow = c(2, 2)) 
+plot(fit5)
+```
+

@@ -1,0 +1,78 @@
+---
+title: "Shiny App Pitch MTCars Clustering"
+author: "Carsten E"
+date: "18 February 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=55),tidy=TRUE)
+require(datasets);data("mtcars"); require(ggplot2); require(ggrepel)
+prCData <- princomp(mtcars, cor = TRUE)
+mtcars$PrComp1 <- prCData$scores[,1]
+mtcars$PrComp2 <- prCData$scores[,2]
+thisCorSet <- subset(mtcars,hp >= 50 & hp <= 200)
+
+carsHC <- hclust(dist(thisCorSet), method = "ward.D2")
+myk <- 3
+thisCorSet$cluster <- factor(cutree(carsHC, k = myk))
+
+```
+
+## Basic Idea
+
+Imagine you are interested in buying one of the cars included in the MTCars Dataset. You want to know which cars to look at. This app will help you to choose the range of horsepowers you are interested in and which transmission type you are intended to use and suggests which cars are similar.
+
+
+The dataset comes from the r package _datasets_ and can be loaded as \code(data(mtcars))
+
+
+
+## Data Processing
+
+Similarity between cars are calculated based on a PCA  and then filtered as shown in the code below
+
+```{r, eval = FALSE, tidy=TRUE}
+prCData <- princomp(mtcars, cor = TRUE)
+thisCorSet <- subset(mtcars,hp >= input$Horses[1] & hp <= input$Horses[2] & am %in% input$transmission)
+```
+
+Clustering is done on the reduced dataset where the user can choose the number of clusters and the filters for transmission and horsepower.
+
+```{r, eval = FALSE, tidy=TRUE}
+      carsHC <- hclust(dist(thisCorSet), method = "ward.D2")
+      myk <- ifelse(input$cluster>=length(carsHC)-2,length(carsHC)-2,input$cluster)
+      thisCorSet$cluster <- factor(cutree(carsHC, k = myk))
+```
+
+## The plot
+
+The plot was created using the below code. An example is given on the next slide.
+
+```{r plot1, eval=FALSE, tidy=TRUE, message=FALSE, warning=FALSE}
+  ggplot(thisCorSet,aes(x=PrComp1, y=PrComp2)) +
+      theme_classic() +
+      geom_point(aes(color = cluster), alpha = 0.55, size = 3) +
+      xlab("PC1") +
+      ylab("PC2") + 
+      xlim(-4,4)+ 
+      ylim(-4,4)+
+      geom_text_repel(aes(y = PrComp2 + 0.25, label = rownames(thisCorSet),color = cluster)) 
+```
+
+
+
+## Slide with Plot
+
+```{r plot,echo=FALSE, tidy=TRUE, message=FALSE, warning=FALSE}
+  ggplot(thisCorSet,aes(x=PrComp1, y=PrComp2)) +
+      theme_classic() +
+      geom_point(aes(color = cluster), alpha = 0.55, size = 3) +
+      xlab("PC1") +
+      ylab("PC2") + 
+      xlim(-4,4)+ 
+      ylim(-4,4)+
+      geom_text_repel(aes(y = PrComp2 + 0.25, label = rownames(thisCorSet),color = cluster)) 
+```
+

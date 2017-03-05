@@ -1,0 +1,163 @@
+---
+title: "Data products quizes"
+output: html_notebook
+---
+
+# week 1
+
+## question 1
+
+I selected
+
+A server.R file containing a call to shinyServer()
+A ui.R file containing a call to shinyUI()
+
+## question 2
+
+I answered 
+
+Missing a comma in the sidebar panel
+
+## question 3
+
+I answered
+
+The server.R output name isn't the same as the plotOutput command used in ui.R.
+
+## question 4
+
+I answered all of these
+
+Shiny Gadgets are designed to be used by R users in the middle of a data analysis.
+Shiny Gadgets are designed to have small user interfaces that fit on one page.
+
+
+## Question 5
+
+I answered
+
+No arguments are defined for pickXY()
+
+
+
+# week 2
+
+## question 1
+
+I answered
+A format that can be interpreted into markdown (which is a simplified markup language).
+A simplified format that, when interpreted, incorporates your R analysis into your document.
+
+## question 2
+
+I answered
+
+echo = FALSE
+
+## question 3
+
+I answered
+
+eval = FALSE
+
+## question 4
+
+I answered 
+A javascript library for creating interactive maps
+An R package interface to the javascript library of the same name
+
+## question 5
+
+I answered
+
+addTiles(leaflet(df))
+leaflet(df) %>% addTiles()
+
+## question 6
+
+I guessed addTiles which is wrong
+I then guessed addMarkers
+
+
+
+# week 3
+
+## question 1
+I answered
+unit tests
+vignette
+
+this was wrong the right answers are
+
+demo directory
+example data sets
+
+
+## question 2
+I answered
+
+mean
+predict
+show
+
+## question 3
+
+I answered
+
+getMethod()
+
+## question 4
+
+I think
+
+#' This function calculates the mean
+#' 
+#' @param x is a numeric vector
+#' @return the mean of x
+#' @export
+#' @examples 
+#' x <- 1:10
+#' createmean(x)
+
+## question 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

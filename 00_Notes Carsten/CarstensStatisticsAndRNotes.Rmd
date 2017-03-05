@@ -173,14 +173,94 @@ To get the output into another format than the plot viewer use devices
 - window() for the Rstudio window
 - to set this to another file device use dev.set() where there should be an integer somewhere indicating which device to set. Available are pdf(), svg(), etc. and those need to be closed at the end with dev.off()
 - to get current graphics device use dev.cur()
+- to make a figure readable use numbers instead of symbols as points so the legens is easier readable
 
 #### GGplot
 
 - for text labels use the package ggrepel() and the function: + `geom_label_repel(aes(label=SamplingPointWeeks),size=2)`
 
+here a simple graph which I will use again below for plotly
+
+```{r}
+require(datasets);data("mtcars");require(ggplot2)
+g1 <- ggplot(mtcars,aes(x=wt,y=mpg,color=factor(cyl)))+geom_point()+theme_light()+geom_smooth(method = "lm")
+g1
+```
+
+
+
+
+- GGally is an addon to GGplot2
+* Has something called ggpairs which is really useful, 
+
+an example how to use this is goven below
+
+```{r, message=FALSE,warning=FALSE}
+require(datasets);data("mtcars")
+require(GGally);require(ggplot2)
+mtcars$Transmission <- ifelse(mtcars$am ==1 , "Automatic","Manual")
+g<- ggpairs(mtcars, mapping = aes(color = Transmission), 
+  upper = list( continuous = wrap("cor", size = 2.75, alignPercent = 1)))
+g
+```
+
+
+#### Plotly
+
+Makes amazing interactive charts when embedded in a webpage.
+
+I still need to check for the compatibility with PDF export
+
+```{r}
+require(plotly)
+ggplotly(g1)
+```
+
+plotly also has a lot of other options that are amazing to see such as the following ones
+
+
+plotly also has a 3D version which is great for reports if it has to be 3D
+
 #### iPlot
 
-seems to be a very powerful tool, should be explored further
+This tool lets one analyze the data interactively by selecting points with the mouse which indicates where these plots are in the other plots. This can be done over quite a wide range of plots.
+
+an example for the mtcars dataset is given below. more is possible but I think this is the basics and the most useful part
+
+```{r}
+require(datasets); data("mtcars")
+require(iplots)
+ibox(mtcars[c(1,3,4,5,6)])
+ibox(mtcars$mpg,mtcars$cyl)
+iplot(mtcars$mpg,mtcars$wt)
+ihist(mtcars$mpg)
+
+```
+
+#### Google Visualisations
+
+Some
+
+```{r}
+suppressPackageStartupMessages(library(googleVis))
+data("Fruits")
+M <- gvisMotionChart(Fruits, idvar="Fruit", timevar="Year")
+#plot(M)
+```
+
+also has a lot of calendar graphs and sanke graphs and really nice maps
+
+and especially cool are the gauge graphs
+
+```{r}
+M1 <- gvisGauge(data.frame(First = 0.5, Second = 1),options=list(min=0, max=1, greenFrom=0,
+                           greenTo=0.2, yellowFrom=0.2, yellowTo=0.8,
+                           redFrom=0.8, redTo=1, width=300, height=300))
+#plot(M1)
+#print(M1, tag="chart", file="Gauge.html")
+```
+
+
 
 
 ## Shiny
@@ -196,8 +276,18 @@ Also think about where to load data or do calculations.
 
 
 
+# Writing RMarkdown documents
 
+## bibliography
+First make sure Mendeley creates a .bib file locally and also ensure that this file is updated frequently.
 
+then add the url to the file to the header of the markdown file
+
+and then simply cite using either [@smith2018] or @smith2016
+
+## other non standard formats
+
+There is something called Bookdown which seems great but I could not get it to work to create pdf
 
 
 
@@ -349,6 +439,23 @@ ggplot(ques3Data,aes(x=variable,y=value))+geom_violin(aes(fill=variable)) +geom_
 
 ### ANOVA
 
+The easiest way is to use the lm function. 
+
+The question here for example is whether the values for the different insect sprays are different from insect sprayA, the p values directly show this. If one wants to change the level, the relevel command can do this to tell the lm function which one to use as a reference as shown below.
+
+```{r}
+require(datasets);data(InsectSprays); require(stats); require(ggplot2)
+summary(lm(count ~ spray, data = InsectSprays))$coef
+InsectSprays$spray <- relevel(InsectSprays$spray, "B")
+summary(lm(count ~ spray, data = InsectSprays))$coef
+```
+
+and to check whether all of them are significantly different from a specific number one simply sets the intercept to this number, in this case I set this to 5
+
+```{r}
+summary(lm(count ~ 0+ spray , offset = rep(5,length(InsectSprays[,1])), data = InsectSprays))$coef
+```
+
 
 
 
@@ -387,27 +494,279 @@ If one would want to be more thorough and get more certainty it is possible to c
 
 
 
-## Regression {.tabset .tabset-fade .tabset-pills}
+## Linear Regression {.tabset .tabset-fade .tabset-pills}
 
-### Overview
+### General
+
+- Multivariate regression is the same as a linear model with more than one variable.
+- In multivariate regression the coefficients can be interpreted separately, coefficient b1 is the effect for x1 where the effect of x2 and b2 are removed
+- an NA in the coefficients in R means that this variable is redundant, e.g. it is 100 % dependent (or as a perfect covariance) with other variables (columns)
+- if one puts an * instead of a + in a model, also the interaction term is used in the model
+
+### to think about
+
+- start with looking at the correlations including the correlation between predictors to find out which variables to include
+- the variable inflation factor is a good way to look at a fit to see which if the variables should maybe be excluded. It is a bit the idea of overfitting to be able to find which variable brings up r squared but does not really improve the model
+- there is a robust linear regression which can be helpful when trying to avoid outliers impacting too much on the result of a linear regression.
+- glmulti() -> can be used to determine the best model for a given problem
+- The package lme4 gives options to make models with a categorial variable so it spits out a lot of models fast.
+- minpack.lm is a good non-linear model fitting procedure
 
 
-### Models
+### Only factor variables (significant difference between measured values of different categories)
 
-| lm | linear regression | |
-| rlm()| robust linear regression | can be used to avoid problems with outliers|
-| |logistic regression | if y is a categorial variable|
+- categorial variables are transferred into columns with 0 and 1, one column per category (factor) as far as I understand it where each column then is assigned a coefficient. The coefficient thus shows the impact of a specific factor on the outcome Y. This is similar to the way that is often tought in machine learning
+- The first factor is assigned as the intercept so it will not apprea in the regression output but it will be there as the intercept
+- Therefore, it is important to set the reference factor if one wants to interpret the coefficients.
+- The coefficients in such a model comparing different factors are estimates of the difference in mean compared to the reference. The p-values show whether the difference is 0 (no significant difference) or if it is significantly different
 
-glmulti() -> can be used to determine the best model for a given problem
+a short example. The graph below shows the average insect count. 
 
-The package lme4 gives options to make models with a categorial variable so it spits out a lot of models fast.
+```{r, echo = FALSE}
+require(datasets);data(InsectSprays); require(stats); require(ggplot2)
+g = ggplot(data = InsectSprays, aes(y = count, x = spray, fill  = spray))
+g = g + geom_violin(colour = "black", size = 2)
+g = g + xlab("Type of spray") + ylab("Insect count")
+g
 
-minpack.lm is a good non-linear model fitting procedure
+```
+
+If we use a linear model on this data, the intercept is the average of spray A and the estimates is the difference os a specific group compared to the reference (the intercept, in this case spray A)
+
+```{r, echo= TRUE}
+summary(lm(count ~ spray, data = InsectSprays))$coef
+```
+
+- if one wants to compare the means to a reference the above described way works great. If one wants to compare all of the levels to e.g. a specific value such as zero, the intercept can be omitted or set and in this way the statistics show the average difference and the significance for each level to the intercept.
+
+an example where the intercept is 0
+
+```{r}
+summary(lm(count ~ 0+ spray , offset = rep(5,length(InsectSprays[,1])), data = InsectSprays))$coef
+```
+
+
+### Linear Models for different categorial variables (difference in response of y versus x for different groups)
+
+
+lets try this fast for the mtcars dataset. First I fit a linear model of mpg as function of weight
+
+```{r}
+require(datasets); data("mtcars")
+fit <- lm(mtcars$mpg ~ mtcars$wt)
+summary(fit)
+plot(mtcars$wt,mtcars$mpg)
+lines(mtcars$wt,fit$fitted.values)
+```
+
+what if we do this for cars with different number of cylinders?
+Here we have two options, first lets assume there is only a different intercept but the slopes are equal or this can be done using different intercepts and slopes. I think in most cases this would be done using independent slopes and intercepts. to do this there is a nice package in R called the lme4 package which is shown below.
+
+```{r}
+library(lme4)
+fit <- lmList(mpg ~ wt | cyl, data = mtcars)
+summary(fit)
+plot(mtcars$wt,mtcars$mpg)
+lines(fit$`4`$model$wt,fit$`4`$fitted.values,col="red")
+lines(fit$`6`$model$wt,fit$`6`$fitted.values,col="green")
+lines(fit$`8`$model$wt,fit$`8`$fitted.values)
+```
+
+If one is solely interested in the difference between the means, so only whether there is a difference in mpg dependent on the number of cylinders, an ANOVA would be the right thing to do which is not included here at this point
+
+
+If one would want to do this for several factors, simply combine the factors in one factor column
+
+```{r}
+library(lme4)
+mtcars$newFactor <- paste(as.character(mtcars$cyl),as.character(mtcars$vs), sep="_")
+fit <- lmList(mpg ~ wt+hp | newFactor, data = mtcars)
+fit
+```
+
+
+### Diagnostics and Residuals
+
+Diagnostics tools can be found using ?influence.measures
+
+important concepts are
+
+- leverage (how much influence does a single point have on the model)
+- outliers (points that are far away from the expected behaviour)
+
+
+To have a closer look on residuals I will use the example below with the lmList function. For simple lm functions this is done easier with only the plot function so I use this slightly more difficult example to explain the plots.
+
+```{r}
+library(lme4)
+fit <- lmList(mpg ~ wt | cyl, data = mtcars)
+summary(fit)
+plot(mtcars$wt,mtcars$mpg)
+lines(fit$`4`$model$wt,fit$`4`$fitted.values,col="red")
+lines(fit$`6`$model$wt,fit$`6`$fitted.values,col="green")
+lines(fit$`8`$model$wt,fit$`8`$fitted.values)
+```
+
+to get a feeling for the leverage that each single point has, lets have a look at the dfbeta which shows how much each point in the dataset impacts on each coefficient.
+
+```{r}
+dfbeta(fit$`4`)
+```
+
+For some models this is too big if there are many points and many coefficients and maybe it is easier to use the dffits which shows how much the fit at a point changes if a specific point is taken out. This only returns a vercor with one value per data point and when looking just at the largest values here one can find points with a lot of leverage. in the case below this would for example show that the Toyota Corolla has a higher impact on the regression than the Honda Civic.
+
+```{r}
+abs(dffits(fit$`4`))
+```
+
+While the above show whether points have actually a lot of impact on a regression the hat values can be used to find whether points have a high leverage independent of whether they have a big impact on the regression. this can be the case for extreme points that are still within the trend observed for the rest of the values. In this case they are similar to the beta values
+
+```{r}
+hatvalues(fit$`4`)
+```
 
 
 
-## Machine learning {.tabset .tabset-fade .tabset-pills}
+Lets look at the standard way of analysing the linear fits with plots now. For LmList fits this can be done for each category separately.
 
+_ The first plot is the most basic, the residuals versus fitted. In the graph below there seems to be a slight trend in the data indicating that there might be some kind of additional variable missing in the model.
+- The Q-Q plot is to test for normality in the error terms and should at least in the center have a linear relationship and not too many datapoints at the lower or upper end
+- standardized residual plot is also interesting to look at for patterns while this is more interesting to compare models, for one model it simply shows the reschaled residuals which were already shown in the top left plot
+- Residuals versus leverage is also for pattern recognition, one should not have points with high leverage and either high or low residuals as these might impact the regression a lot.
+
+```{r}
+par(mfrow = c(2,2), oma = c(0, 0, 1.1, 0))
+plot(fit$`4`)
+```
+
+
+When looking at the overall picture for all fits together it is a bit more difficult to get the plots but the residual versus predicted is easy
+
+```{r}
+plot(fit)
+```
+
+And the qqplot is also not difficult
+
+```{r}
+qqnorm(fit)
+```
+
+
+
+
+
+
+
+
+### Model selection
+
+one can simply make 3 fits and then compare them using the anova function as shown below. Here the anova shows that including more factors from fit to fit1 actually makes the model "better" while adding all variables in fit3 makes no big change. This is not the whole truth but already gives a good first look at the comparison between models
+
+```{r}
+fit <- lm(mpg ~ wt , data = mtcars)
+fit1 <- lm(mpg ~ wt + hp * cyl, data = mtcars)
+fit2 <- lm(mpg ~ ., data = mtcars)
+anova(fit,fit1,fit2)
+```
+
+- there is also a package which is called lmtest which might be interesting to look at 
+
+backward or forward linear regression can be done using the following package
+
+```{r}
+summary(step(fit2,direction = "both",trace = "FALSE"))
+```
+
+
+
+## Generalized linear models 
+
+As far as I understand it the difference between generalized linear models and e.g. linear models is
+
+LM : X         -> Y
+GLM: X -> link -> Y
+
+
+  LM                                           |   GLM
+ -----                                         | ------
+  Response Y changes linearly with variable x  | The link function changes linearly with the response x and the outcome Y is created via the link function
+  The response Y is expected to have a gaussian distribution | The distribution of Y is modelled via the link function and can have a lerge variety of distributions
+
+
+
+Examples for Generalized linear mdoels are
+
+- Logistic regression (outcome is 0 or 1)
+- Exponential -response models 
+
+
+### Logistic regression
+
+- y value is binary
+- so bernoulli distribution is used to model the outcome y
+Link function is the logit function
+
+to fit the model, one can use simply the glm function giving it the family = "binomial" parameter
+
+logRegRavens <- glm(ravensData$ravenWinNum ~ ravensData$ravenScore,family="binomial")
+
+One thing to note is that the coefficients are on a log scale, one would have to take exp() to get them to the original scale. after transformation, a 1 would mean no change and the coefficient -1 is the increase in odds ratio per unit of the predictor (x). So a coefficient of 1.1 for e.g. x being weight in kg means with every kg the odds ratio increases with 10%. A coefficient after the exp transform of 1 would mean no effect. For small odds ratios the odds ratio is almost equal to probability but this is not generally true.
+! check again for the odds ratio and probability interpretation before using this!
+
+watch out, coefficients in the log are close to 0 if no effect is expected, after the exp transformation they are close to 0
+
+### poisson regression
+
+- for modelling count data (which can not be below 0) with or without a specific upper limit when there is an upper limit the data can be modelled as a percentage
+- is the poisson also general for the percentage?
+- this distribution also works for rates, e.g. the number of cases over a given time frame
+- link function is log(). this log is not on the data but on the coefficient as far as I understand it
+
+watch out, coefficients in the log are close to 0 if no effect is expected, after the exp transformation they are close to 0
+
+if there are many 0 in the data there are special ways to deal with it, it is called zero inflation
+
+## optimization
+
+The simplest optimization is one with only a single parameter and where the data can be directly added to the function as shown below
+
+
+```{r}
+myFun <- function(u)
+{
+  x <- c(0.18, -1.54, 0.42, 0.95)
+  w <- c(2, 1, 3, 1)
+  return(sum((w*(x-u)^2)))
+}
+
+result <- optim(u=0.01,myFun,min.RSS,data=data.frame(x=x,w=w))
+
+optimise(myFun,c(0.001,2))
+```
+
+
+
+This does not work as it is a linear optimization but the concept is correct, this is how the optimizer can be called if we would have more than one formula
+
+```{r}
+x <- c(0.18, -1.54, 0.42, 0.95)
+w <- c(2, 1, 3, 1)
+
+myFun <- function(data,u)
+{
+  with(data,(w*(x-u)^2))
+}
+
+result <- optim(u=0.01,myFun,min.RSS,data=data.frame(x=x,w=w))
+
+
+```
+
+
+# Machine learning {.tabset .tabset-fade .tabset-pills}
+
+The distinction between machine learning and e.g. model building such as linear regression is that one is not that interested in the interpretation of the fitting coefficients but more on having a good estimate at the end. So more complex models are acceptable and the main goal is to have a good outcome while in model fitting sometimes a worse outcome with better physical meaning of th emodel is preferred.
 
 
 - The general idea is to set aside a dataset as testing before any data analysis (split the data)
@@ -416,15 +775,205 @@ minpack.lm is a good non-linear model fitting procedure
 - Then do some training with maybe boot strapping and other statistical tricks to get to the best model
 - and finally do some evaluation of the model and verification with the test set.
 
+## General Concepts
 
-### Pre processing
+- _In sample errors_ (resubstitution error) are those one obtains on the data that you build your model on
+- _Out of sample errors_ (generalization error) are those one obtains on another dataset
+- the out of sample error is always larger than the in sample error because of overfitting, the data is always better on the training than on the test set.
+
+the types of errors are typically reported in terms of
+__True positive__ = correctly identified
+
+__False positive__ = incorrectly identified
+
+__True negative__ = correctly rejected
+
+__False negative__ = incorrectly rejected
+
+
+these are then commonly reported in terms of the below values dependent on the goal of the prediction. Not in all cases the accuracy is important but sometimes it is more important to have less nagtives or more positives dependent what one can accept.
+
+- Sensitivity
+- specificity
+- precision or positive predictor value
+- negative predictor value
+
+for numerical outcomes, the quality can be expressed in terms of
+
+- Mean Squared Error or better Root mean squared error (RMSE) which is in the units of the outcome
+- Median absolute deviation
+
+and for those with multi-class predictions use concordance
+
+for models where the outcome is binary, most often the outcome would be a probability and one would assign cases to classes based on a cutoff. to find the bst cutoff for a specicif case, ROS curves are used. using the area under the curve there can help to compare models
+
+
+## workflow
+
+- separate data into test and training set. Make sure this is done logically, normally this is done automatically using \code{createDatapartition()} but there are special functions for for example time series of special ways of partitioning.
+* large datasets use 60% training, 20% test and 20 % vaidation
+* medium sized datasets 60% training 40% testing
+* small datasets all for training and report only in sample error
+- for model building use cross-validation which means split the test set randomly in test and training set, build and test the model, average the errors from this and then repeat with another subset of the original test set. 
+* there are different mechnisms to choose the subsets available, picking one depends on the application
+* if there is not enough data to do subsets, bootstrapping can be used wich is the same just that it does sampling with replacement 
+
+
+
+
+## Pre processing
 
 - there are standard functions available
 - missing data need to be added
 - data can be centered and scaled
 - using PCA the number of variables can be reduced
 
+### to keep in mind
+- There is a special way to treat time series. There are special objects for this and especially interesting is that there is a decompose function which decomposes this in cyclic patterns such as seasonal things, annual trends etc.
 
+## Model Selection
+
+### For numeric outcomes
+
+
+- Multivariate (or even linear) regression is always a good start, especially because the coefficients can be interpreted. 
+* in the caret package use method="glm"
+- Regularized regression can help in many cases to reduce the complexity of the model, in the caret package this would be using method = "ridge", "lasso", "relaxo"
+
+
+
+The choice is always difficult and different models have to be tested
+
+- Linear algorythms
+* Linear Discriminant Analysis (LDA)
+- Nonlinear Algorythms
+* Classification and Regression Trees (CART).
+* k-Nearest Neighbors (kNN).
+- complex nonlinear algorythms
+* Support Vector Machines (SVM) with a linear kernel.
+- Random Forest (rf)
+
+
+
+
+
+
+
+Other approaches
+- in general it is possible to combine models which improves prediction accuracy but on the cost of interpretability. This would work as follows for two models but this could be done for a lot more models which will always increase the accuracy
+* create two models using different algorythms
+* use the outcome (predicted values) from these models as variables for a new model with another or a similar algorythm
+* the outcome will most likely be better than for both models separately
+* For the prediction on the validation or test dataset the same steps would have to be taken, fitting both models separately and then the third one on the outcomes.
+
+
+## Model Tuning
+
+### Cross validation
+
+As far as I understand it, cross validation just means that in the training process the model is run several times on subsets of the training dataset. In this way the model is more robust as these subsets are validated against the values that are left out and in this way one tries to reduce the problem of over fitting and bias 
+
+The method which is used for this can be chosen in the caret package using the traincontrol() function and the below options
+
+- Bootstrapping (default)
+- k-fold cross validation
+- leave one out
+- etc.
+
+
+### Quality of the model
+
+to watch out for
+- for regression (numeric outcome) 
+* RMSE
+* R^2
+- for classification
+* accuracy
+* kappa
+
+## A typical example
+
+Load Data and split it in train and Test set
+
+
+```{r}
+require(datasets); data("iris"); suppressPackageStartupMessages(require(caret))
+set.seed(3456)
+trainIndex <- createDataPartition(iris$Species, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+irisTrain <- iris[ trainIndex,]
+irisTest  <- iris[-trainIndex,]
+
+```
+
+
+In general do some descriptive statistics here and see what one has.
+
+
+Do some analysis on the data like correlated and near zero variance detection
+
+```{r}
+nearZeroVar(irisTrain, saveMetrics= TRUE)
+findCorrelation(cor(irisTrain[,-5]), cutoff = .75)
+```
+
+
+Pre-process the data where neccesary, maybe impute, transform or center and scale
+
+```{r}
+preProcValues <- preProcess(irisTrain, method = c("BoxCox","center", "scale"))
+
+IrisTrainTransformed <- predict(preProcValues, irisTrain)
+IrisTestTransformed <- predict(preProcValues, irisTest)
+```
+
+Here one could also think about pre-procesing by combining predictors using PCA or something similar to have less columns to use.
+
+
+Fit a model, or more models to compare them
+
+```{r}
+fitControl <- trainControl(## 10-fold CV
+                           method = "repeatedcv",
+                           number = 10,
+                           ## repeated ten times
+                           repeats = 10)
+
+gbmFit1 <- train(Species ~ ., data = IrisTrainTransformed, 
+                 method = "gbm", 
+                 trControl = fitControl,
+                 ## This last option is actually one
+                 ## for gbm() that passes through
+                 verbose = FALSE)
+gbmFit1
+```
+
+Evaluate the outcome. In general one wants to see how the model performs on the test set and analyze the model specific parameter and if they make sense, maybe interpret something on them.
+
+```{r}
+IrisTestTransformed$PredSpecies <- predict(gbmFit1,IrisTestTransformed)
+confusionMatrix(data = IrisTestTransformed$PredSpecies, reference = IrisTestTransformed$Species, mode = "prec_recall")
+```
+
+
+Afterwards a lot of things can be done to improve the model or make it self consistent and so forth but this is a larger topic beyond my current abilities.
+
+
+
+
+
+# Industrially relevant models and analysis
+
+When looking at a process one should do a screening before the actual test which included
+
+- batch variation
+- process variations (within one batch over time)
+
+when looking at the final model the most important part are
+
+- quality (optimize the outcome)
+- robustness (most important, have a location in the design space where some variation does not matter too much otherwise it is difficult to steer the process)
 
 
 

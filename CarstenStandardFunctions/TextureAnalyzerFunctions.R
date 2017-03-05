@@ -13,7 +13,6 @@ ImportTextureAnalyzerRawData <- function(dataFolder)
       TASamples[index] <- SampleName[j]
       index <- index +1
     }
-    
     RawRawData <- read.csv2(RawTextureDataFiles[i], skip = 1, row.names = NULL, header = TRUE)
     
     for(j in 1:length(TASamples))
@@ -24,7 +23,6 @@ ImportTextureAnalyzerRawData <- function(dataFolder)
       rawData$SampleName <- rep(TASamples[j],length(rawData[,1]))
       returnData <- rbind(returnData,rawData)
     }
-    
   }
   return(returnData)
 }

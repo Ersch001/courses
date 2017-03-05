@@ -78,6 +78,7 @@ summary(trainingCor[upper.tri(trainingCor)])
 
 trainingFinal <- trainingImp[,-(findCorrelation(trainingCor,cutoff = .9))]
 testingFinal <- testingImp[,-findCorrelation(trainingCor,cutoff = .9)]
+rm(trainingImp);rm(testingImp)
 ```
 
 
@@ -95,7 +96,7 @@ set.seed(1234)
 inTraining <- createDataPartition(trainingFinal$classe, p = .8, list = FALSE)
 trainingTrain <- trainingFinal[ inTraining,]
 trainingTest  <- trainingFinal[-inTraining,]
-
+rm(trainingFinal)
 control <- trainControl(method="cv", number=10)
 
 mod_rf <- train(classe ~.,method = "rf",data = trainingTrain, trControl = control)
